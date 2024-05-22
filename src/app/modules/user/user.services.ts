@@ -1,184 +1,135 @@
-import { Admin, Manager, Prisma, UserRole } from "@prisma/client";
+import { Admin, User, UserRole } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import { hashedPassword } from "./user.utils";
-import { IUser } from "./user.interface";
-import { IGenericResponse } from "../../../interfaces/common";
-import { Request } from "express";
-import { IUploadFile } from "../../../interfaces/file";
-import { FileUploadHelper } from "../../../helpers/fileUploadHelper";
+import { IAuthUser } from "../../../interfaces/common";
 
-import { MeiliSearch } from "meilisearch";
-
-const meiliClient = new MeiliSearch({
-  host: "http://localhost:7700",
-  apiKey: "aSampleMasterKey",
-});
-
-const createApplicant = async (req: Request) => {
-  const file = req.file as IUploadFile;
-
-  if (file) {
-    const uploadedProfileImage = await FileUploadHelper.uploadToCloudinary(
-      file
-    );
-    req.body.profilePhoto = uploadedProfileImage?.secure_url;
-  }
-
-  const hashPassword = await hashedPassword(req.body.password);
-
-  const result = await prisma.$transaction(async (transactionClient) => {
-    const newUser = await transactionClient.user.create({
-      data: {
-        email: req.body.email,
-        password: hashPassword,
-        role: UserRole.APPLICANT,
-        name: req.body.name,
-      },
-    });
-
-    const newApplicant = await transactionClient.applicant.create({
-      data: {
-        id: req.body.id,
-        name: req.body.name,
-        email: req.body.email,
-        password: hashPassword,
-        role: UserRole.APPLICANT,
-      },
-    });
-
-    const { id, email, name } = newApplicant;
-    const index = meiliClient.index("applicant");
-    await index.addDocuments([{ id, email, name }]);
-
-    return newApplicant;
-  });
-
-  return result;
-};
-
-const createAdmin = async (req: Request): Promise<Admin> => {
-  const file = req.file as IUploadFile;
-
-  if (file) {
-    const uploadedProfileImage = await FileUploadHelper.uploadToCloudinary(
-      file
-    );
-    req.body.profilePhoto = uploadedProfileImage?.secure_url;
-  }
-
-  const hashPassword = await hashedPassword(req.body.password);
-  const result = await prisma.$transaction(async (transactionClient) => {
-    const newUser = await transactionClient.user.create({
-      data: {
-        email: req.body.email,
-        password: hashPassword,
-        role: UserRole.ADMIN,
-        name: req.body.name,
-      },
-    });
-
-    const newAdmin = await transactionClient.admin.create({
-      data: {
-        id: req.body.id,
-        name: req.body.name,
-        email: req.body.email,
-        password: hashPassword,
-      },
-    });
-
-    return newAdmin;
-  });
-
-  return result;
-};
-
-const createManager = async (req: Request): Promise<Manager> => {
-  const file = req.file as IUploadFile;
-
-  if (file) {
-    const uploadedProfileImage = await FileUploadHelper.uploadToCloudinary(
-      file
-    );
-    req.body.profilePhoto = uploadedProfileImage?.secure_url;
-  }
-
-  const hashPassword = await hashedPassword(req.body.password);
-  const result = await prisma.$transaction(async (transactionClient) => {
-    const newUser = await transactionClient.user.create({
-      data: {
-        email: req.body.email,
-        password: hashPassword,
-        role: UserRole.MANAGER,
-        name: req.body.name,
-      },
-    });
-
-    const newManager = await transactionClient.manager.create({
-      data: {
-        id: req.body.id,
-        name: req.body.name,
-        email: req.body.email,
-        password: hashPassword,
-      },
-    });
-
-    return newManager;
-  });
-
-  return result;
-};
-
-const getAllUser = async (): Promise<IGenericResponse<IUser[]>> => {
-  const result = await prisma.user.findMany();
-  return {
-    data: result,
-    meta: {
-      total: result.length,
-      page: 1,
-      limit: result.length,
-    },
+const createAdmin = async (payload: {
+  username: string;
+  email: string;
+  password: string;
+}) => {
+  const hashPassword = await hashedPassword(payload.password);
+  const userData = {
+    email: payload.email,
+    password: hashPassword,
+    role: UserRole.ADMIN,
   };
+
+  const existingUser = await prisma.admin.findFirst({
+    where: {
+      OR: [{ email: payload.email }, { username: payload.username }],
+    },
+  });
+
+  if (existingUser) {
+    throw new Error("User with the same email or username already exists");
+  }
+
+  const result = await prisma.$transaction(async (transactionClient) => {
+    await transactionClient.user.create({
+      data: userData,
+    });
+
+    const createdAdminData = await transactionClient.admin.create({
+      data: payload,
+      select: {
+        username: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return createdAdminData;
+  });
+
+  return result;
 };
 
-const getMyProfile = async (authUser: any) => {
-  const userData = await prisma.user.findUnique({
+const createUser = async (payload: {
+  username: string;
+  email: string;
+  password: string;
+}) => {
+  const hashPassword = await hashedPassword(payload.password);
+  const userData = {
+    email: payload.email,
+    password: hashPassword,
+    role: UserRole.FLAT_USER,
+  };
+
+  const existingUser = await prisma.flatUser.findFirst({
     where: {
-      id: authUser.userId,
+      OR: [{ email: payload.email }, { username: payload.username }],
+    },
+  });
+
+  if (existingUser) {
+    throw new Error("User with the same email or username already exists");
+  }
+
+  const result = await prisma.$transaction(async (transactionClient) => {
+    await transactionClient.user.create({
+      data: userData,
+    });
+
+    const createdFlatUserData = await transactionClient.flatUser.create({
+      data: payload,
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return createdFlatUserData;
+  });
+
+  return result;
+};
+
+const getMyProfile = async (user: IAuthUser) => {
+  const userInfo = await prisma.user.findUnique({
+    where: {
+      email: user?.email,
     },
     select: {
+      id: true,
       email: true,
       role: true,
       needPasswordChange: true,
     },
   });
 
-  let profileData;
-  if (userData?.role === UserRole.ADMIN) {
-    profileData = await prisma.admin.findUnique({
+  let profileInfo;
+
+  if (userInfo?.role === UserRole.SUPER_ADMIN) {
+    profileInfo = await prisma.admin.findUnique({
       where: {
-        email: userData.email,
+        email: user?.email,
       },
     });
-  } else if (userData?.role === UserRole.MANAGER) {
-    profileData = await prisma.manager.findUnique({
+  } else if (userInfo?.role === UserRole.ADMIN) {
+    profileInfo = await prisma.admin.findUnique({
       where: {
-        email: userData.email,
+        email: user?.email,
       },
     });
-  } else if (userData?.role === UserRole.APPLICANT) {
-    profileData = await prisma.applicant.findUnique({
+  } else if (userInfo?.role === UserRole.FLAT_USER) {
+    profileInfo = await prisma.flatUser.findUnique({
       where: {
-        email: userData.email,
+        email: user?.email,
       },
     });
   }
-  return { ...profileData, ...userData };
+
+  return { ...userInfo, ...profileInfo };
 };
 
 export const UserServices = {
-  createApplicant,
   createAdmin,
-  createManager,
-  getAllUser,
+  createUser,
   getMyProfile,
 };

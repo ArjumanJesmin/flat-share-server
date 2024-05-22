@@ -3,21 +3,11 @@ import httpStatus from "http-status";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { UserServices } from "./user.services";
-
-const createApplicant = catchAsync(async (req: Request, res: Response) => {
-  //const { Applicant , ...userData } = req.body;
-  const result = await UserServices.createApplicant(req);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Applicant created successfully!",
-    data: result,
-  });
-});
+import { IAuthUser } from "../../../interfaces/common";
 
 const createAdmin = catchAsync(async (req: Request, res: Response) => {
-  //const { admin, ...userData } = req.body;
-  const result = await UserServices.createAdmin(req);
+  console.log(req.body);
+  const result = await UserServices.createAdmin(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -26,45 +16,33 @@ const createAdmin = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const createManager = catchAsync(async (req: Request, res: Response) => {
-  //const { manager, ...userData } = req.body;
-  const result = await UserServices.createManager(req);
+const createUser = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserServices.createUser(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Patient created successfully!",
+    message: "User created successfully!",
     data: result,
   });
 });
 
-const getAllUser = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserServices.getAllUser();
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Users retrieval successfully",
-    meta: result.meta,
-    data: result.data,
-  });
-});
+const getMyProfile = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const user = req.user;
 
-const getMyProfile = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user;
+    const result = await UserServices.getMyProfile(user as IAuthUser);
 
-  const result = await UserServices.getMyProfile(user);
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Profile data fetched!",
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "My profile data fetched!",
+      data: result,
+    });
+  }
+);
 
 export const UserController = {
-  createApplicant,
   createAdmin,
-  createManager,
-  getAllUser,
+  createUser,
   getMyProfile,
 };
