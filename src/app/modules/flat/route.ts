@@ -7,8 +7,10 @@ const router = express.Router();
 
 router.post(
   "/",
-  // auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.USER),
   FlatController.createFlatFromDB
 );
+
+router.get("/", FlatController.getAllFlatFromDB);
 
 export const FlatRoutes = router;

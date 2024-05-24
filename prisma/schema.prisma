@@ -11,7 +11,7 @@ datasource db {
 enum UserRole {
   SUPER_ADMIN
   ADMIN
-  FLAT_USER
+  USER
 }
 
 // Define the RequestStatus enum to represent the status of flat share requests
@@ -64,7 +64,6 @@ model FlatUser {
   updatedAt          DateTime @updatedAt
 
   testimonials     Testimonial[]
-  Flat             Flat[]
   FlatShareRequest FlatShareRequest[]
   user             User               @relation(fields: [email], references: [email])
 
@@ -82,10 +81,8 @@ model Flat {
   amenities        String
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
-  flatUser         FlatUser           @relation(fields: [flatUserId], references: [id])
-  flatUserId       String
-  user             User?              @relation(fields: [userId], references: [id])
-  userId           String?
+  user             User               @relation(fields: [userId], references: [id])
+  userId           String
   FlatShareRequest FlatShareRequest[]
 
   @@map("flat")

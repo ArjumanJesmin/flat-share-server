@@ -22,7 +22,7 @@ const auth =
         config.jwt.jwt_secret as Secret
       );
 
-      req.user = verifiedUser; // role  , userid
+      req.user = verifiedUser; // role  ,
 
       // role diye guard korar jnno
       if (requiredRoles.length && !requiredRoles.includes(verifiedUser.role)) {

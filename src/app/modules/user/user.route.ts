@@ -17,10 +17,6 @@ router.post(
   UserController.createUser
 );
 
-router.get(
-  "/me",
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.FLAT_USER),
-  UserController.getMyProfile
-);
+router.get("/me", UserController.getMyProfile);
 
 export const userRoutes = router;

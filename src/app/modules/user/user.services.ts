@@ -55,7 +55,7 @@ const createUser = async (payload: {
   const userData = {
     email: payload.email,
     password: hashPassword,
-    role: UserRole.FLAT_USER,
+    role: UserRole.USER,
   };
 
   const existingUser = await prisma.flatUser.findFirst({
@@ -117,7 +117,7 @@ const getMyProfile = async (user: IAuthUser) => {
         email: user?.email,
       },
     });
-  } else if (userInfo?.role === UserRole.FLAT_USER) {
+  } else if (userInfo?.role === UserRole.USER) {
     profileInfo = await prisma.flatUser.findUnique({
       where: {
         email: user?.email,
