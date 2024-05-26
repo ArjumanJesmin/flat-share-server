@@ -1,12 +1,7 @@
-import { Flat, Prisma } from "@prisma/client";
-import { v4 as uuidv4 } from "uuid";
-
 import prisma from "../../../shared/prisma";
-import { jwtHelpers } from "../../../helpers/jwtHelpers";
-import config from "../../../config";
-import httpStatus from "http-status";
-import ApiError from "../../../errors/ApiError";
+
 import { IAuthUser } from "../../../interfaces/common";
+import { Flat } from "@prisma/client";
 
 export type IUploadFile = {
   fieldname: string;
@@ -19,58 +14,142 @@ export type IUploadFile = {
   size: number;
 };
 
-type TFlat = {
+interface FlatPhoto {
+  imageUrl: string;
+}
+
+interface FlatData {
   location: string;
   description: string;
   rentAmount: number;
   bedrooms: number;
-  flatPhotos: string;
+  flatPhotos: FlatPhoto[];
   amenities: string;
-};
+}
 
-const createFlatFromDB = async (
-  payload: TFlat,
-  user: IAuthUser
-): Promise<Flat> => {
-  const userInfo = await prisma.user.findUniqueOrThrow({
-    where: {
-      email: user?.email,
-    },
-  });
+declare module "express" {
+  export interface Request {
+    user: IAuthUser;
+    body: FlatData | null;
+  }
+}
 
-  const { location, description, rentAmount, bedrooms, flatPhotos, amenities } =
-    payload;
+const createFlatFromDB = async (req: Request) => {
+  try {
+    const { userId } = req.user;
 
-  const flatData = {
-    id: uuidv4(),
-    location,
-    description,
-    rentAmount,
-    bedrooms,
-    flatPhotos,
-    amenities,
-    userId: userInfo?.id,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+    // Extract flatPhotos from req.body
+    const {
+      location,
+      description,
+      rentAmount,
+      bedrooms,
+      flatPhotos,
+      amenities,
+    } = req.body;
 
-  const createdFlat = await prisma.flat.create({
-    data: flatData,
-  });
+    const photos = Array.isArray(flatPhotos) ? flatPhotos : [];
 
-  return createdFlat;
+    // Validate that all required fields are present
+    if (!location || !description || !rentAmount || !bedrooms || !amenities) {
+      throw new Error("One or more required fields are missing or invalid");
+    }
+
+    const createdFlat = await prisma.flat.create({
+      data: {
+        location,
+        description,
+        rentAmount,
+        bedrooms,
+        amenities,
+        userId,
+        flatPhotos: {
+          create: photos.map((photo) => ({
+            imageUrl: photo.imageUrl,
+          })),
+        },
+      },
+    });
+
+    return createdFlat;
+  } catch (error) {
+    console.error("Error creating flat:", error);
+    throw error;
+  }
 };
 
 const getAllFlatFromDB = async () => {
-  const result = prisma.flat.findMany({
-    // include: {
-    //   flatUser: true,
-    //   user: true,
-    // },
+  const result = prisma.flat.findMany();
+  return result;
+};
+
+const getSingleFlatFromDB = async (id: string) => {
+  const result = await prisma.flat.findFirstOrThrow({
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      location: true,
+      description: true,
+      flatPhotos: true,
+      rentAmount: true,
+      bedrooms: true,
+      amenities: true,
+      userId: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
   return result;
+};
+
+const updateFlatDataIntoDB = async (id: string, payload: Flat) => {
+  const result = await prisma.flat.update({
+    where: {
+      id,
+    },
+    data: payload,
+  });
+  return result;
+};
+
+const updateMyFlatDataIntoDB = async (
+  id: string,
+  user: IAuthUser,
+  payload: TFlat
+) => {
+  await prisma.flat.findFirstOrThrow({
+    where: {
+      id,
+      userId: user?.id,
+    },
+  });
+
+  const result = await prisma.flat.update({
+    where: {
+      id,
+      userId: user?.id,
+    },
+    data: payload,
+  });
+  return result;
+};
+
+const deleteFlatFromDB = async (id: string) => {
+  const deleteFlat = await prisma.flat.delete({
+    where: {
+      id,
+    },
+  });
+
+  return deleteFlat;
 };
 export const FlatService = {
   createFlatFromDB,
   getAllFlatFromDB,
+  updateFlatDataIntoDB,
+  updateMyFlatDataIntoDB,
+  deleteFlatFromDB,
+  getSingleFlatFromDB,
 };

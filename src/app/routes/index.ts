@@ -2,6 +2,7 @@ import express from "express";
 import { userRoutes } from "../modules/user/user.route";
 import { AuthRoutes } from "../modules/auth/auth.routes";
 import { FlatRoutes } from "../modules/flat/route";
+import { FlatShareRoutes } from "../modules/FlatShare/route";
 
 const router = express.Router();
 
@@ -18,6 +19,10 @@ const moduleRoutes = [
   {
     path: "/flat",
     route: FlatRoutes,
+  },
+  {
+    path: "/flatShare",
+    route: FlatShareRoutes,
   },
 ];
 

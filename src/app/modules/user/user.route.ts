@@ -13,10 +13,15 @@ router.post(
 
 router.post(
   "/create-user",
-  // auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.FLAT_USER),
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
   UserController.createUser
 );
 
-router.get("/me", UserController.getMyProfile);
+router.get(
+  "/me",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  UserController.getMyProfile
+);
+router.get("/users", UserController.getAllUsers);
 
 export const userRoutes = router;

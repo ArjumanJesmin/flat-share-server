@@ -127,9 +127,26 @@ const getMyProfile = async (user: IAuthUser) => {
 
   return { ...userInfo, ...profileInfo };
 };
+const getAllUsers = async () => {
+  try {
+    const users = await prisma.flatUser.findMany({
+      select: {
+        id: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    return users;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    throw error;
+  }
+};
 
 export const UserServices = {
   createAdmin,
   createUser,
   getMyProfile,
+  getAllUsers,
 };

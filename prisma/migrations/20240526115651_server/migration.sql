@@ -50,13 +50,21 @@ CREATE TABLE "flat" (
     "description" TEXT NOT NULL,
     "rentAmount" DOUBLE PRECISION NOT NULL,
     "bedrooms" INTEGER NOT NULL,
-    "flatPhoto" TEXT,
     "amenities" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "userId" TEXT NOT NULL,
 
     CONSTRAINT "flat_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "FlatPhoto" (
+    "id" TEXT NOT NULL,
+    "imageUrl" TEXT NOT NULL,
+    "flatId" TEXT NOT NULL,
+
+    CONSTRAINT "FlatPhoto_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -68,7 +76,6 @@ CREATE TABLE "flatShareRequest" (
     "flatId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "flatUserId" TEXT NOT NULL,
 
     CONSTRAINT "flatShareRequest_pkey" PRIMARY KEY ("id")
 );
@@ -109,13 +116,13 @@ ALTER TABLE "flatUser" ADD CONSTRAINT "flatUser_email_fkey" FOREIGN KEY ("email"
 ALTER TABLE "flat" ADD CONSTRAINT "flat_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "FlatPhoto" ADD CONSTRAINT "FlatPhoto_flatId_fkey" FOREIGN KEY ("flatId") REFERENCES "flat"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "flatShareRequest" ADD CONSTRAINT "flatShareRequest_flatId_fkey" FOREIGN KEY ("flatId") REFERENCES "flat"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "flatShareRequest" ADD CONSTRAINT "flatShareRequest_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "flatShareRequest" ADD CONSTRAINT "flatShareRequest_flatUserId_fkey" FOREIGN KEY ("flatUserId") REFERENCES "flatUser"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "testimonial" ADD CONSTRAINT "testimonial_flatUserId_fkey" FOREIGN KEY ("flatUserId") REFERENCES "flatUser"("id") ON DELETE SET NULL ON UPDATE CASCADE;

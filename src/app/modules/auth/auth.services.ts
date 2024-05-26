@@ -24,6 +24,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
   const accessToken = jwtHelpers.generateToken(
     {
       email: userData.email,
+      userId: userData.id,
       role: userData.role,
     },
     config.jwt.jwt_secret as Secret,
@@ -36,6 +37,38 @@ const loginUser = async (payload: { email: string; password: string }) => {
   };
 };
 
+const changePassword = async (user: any, payload: any) => {
+  const userData = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: user.email,
+    },
+  });
+  const isCorrectPassword: boolean = await bcrypt.compare(
+    payload.oldPassword,
+    userData.password
+  );
+  if (!isCorrectPassword) {
+    throw new Error("Password incorrect!");
+  }
+
+  const hashedPassword: string = await bcrypt.hash(payload.newPassword, 12);
+
+  await prisma.user.update({
+    where: {
+      id: userData.id,
+    },
+    data: {
+      password: hashedPassword,
+      // needPasswordChange: false,
+    },
+  });
+
+  return {
+    message: "Password changed successfully!",
+  };
+};
+
 export const AuthService = {
   loginUser,
+  changePassword,
 };

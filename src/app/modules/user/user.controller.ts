@@ -6,7 +6,6 @@ import { UserServices } from "./user.services";
 import { IAuthUser } from "../../../interfaces/common";
 
 const createAdmin = catchAsync(async (req: Request, res: Response) => {
-  console.log(req.body);
   const result = await UserServices.createAdmin(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -22,6 +21,16 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "User created successfully!",
+    data: result,
+  });
+});
+
+const getAllUsers = catchAsync(async (req, res) => {
+  const result = await UserServices.getAllUsers();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Show User All successfully!",
     data: result,
   });
 });
@@ -45,4 +54,5 @@ export const UserController = {
   createAdmin,
   createUser,
   getMyProfile,
+  getAllUsers,
 };

@@ -10,6 +10,7 @@ export type IGenericErrorResponse = {
 
 export type IAuthUser =
   | {
+      id: string;
       email: string;
       role: UserRole;
     }
