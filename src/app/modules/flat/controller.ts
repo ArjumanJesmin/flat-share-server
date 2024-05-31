@@ -4,8 +4,10 @@ import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { Request, Response } from "express";
 import { IAuthUser } from "../../../interfaces/common";
+import { flatFilterableFields } from "./constant";
+import pick from "../../../shared/pick";
 
-const createFlatFromDB = catchAsync(async (req: Request, res: Response) => {
+const createFlatFromDB = catchAsync(async (req, res) => {
   const result = await FlatService.createFlatFromDB(req);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -16,13 +18,16 @@ const createFlatFromDB = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllFlatFromDB = catchAsync(async (req: Request, res: Response) => {
-  // const token = req.headers.authorization as string;
-  const result = await FlatService.getAllFlatFromDB();
+  const user = req.user as any;
+  const filters = pick(req.query, flatFilterableFields);
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+  const result = await FlatService.getAllFlatFromDB(user, filters, options);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Admin retrieval successfully",
-    data: result,
+    message: "Flats retrieval successfully",
+    meta: result.meta,
+    data: result.data,
   });
 });
 
@@ -37,7 +42,7 @@ const getSingleFlat = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const updateFlat = catchAsync(async (req: Request, res: Response) => {
+const updateFlat = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await FlatService.updateFlatDataIntoDB(id, req.body);
 

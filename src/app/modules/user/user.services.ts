@@ -144,9 +144,134 @@ const getAllUsers = async () => {
   }
 };
 
+// const editProfileIntoDB = async (
+//   email: string,
+//   payload: { username?: string; email?: string }
+// ) => {
+//   const isExistInUser = await prisma.user.findUniqueOrThrow({
+//     where: {
+//       email,
+//     },
+//     select: {
+//       email: true,
+//     },
+//   });
+
+//   const isExistInAdmin = await prisma.admin.findUnique({
+//     where: {
+//       email,
+//     },
+//   });
+
+//   if (isExistInUser && !isExistInAdmin) {
+//     const updateUser = await prisma.user.update({
+//       where: {
+//         email,
+//       },
+//       data: payload,
+//       select: {
+//         id: true,
+//         email: true,
+//         role: true,
+//         needPasswordChange: true,
+//         createdAt: true,
+//         updatedAt: true,
+//       },
+//     });
+//     return updateUser;
+//   }
+//   if (!!isExistInAdmin && !!isExistInUser) {
+//     return await prisma.$transaction(async (transactionClient) => {
+//       const updateUser = await transactionClient.user.update({
+//         where: {
+//           email,
+//         },
+//         data: payload,
+//         select: {
+//           id: true,
+//           email: true,
+//           role: true,
+//           needPasswordChange: true,
+//           createdAt: true,
+//           updatedAt: true,
+//         },
+//       });
+
+//       await transactionClient.admin.update({
+//         where: {
+//           email,
+//         },
+//         data: payload,
+//       });
+
+//       return updateUser;
+//     });
+//   }
+// };
+
+const changeUserRole = async (userId: any, status: { role: string }) => {
+  const result = await prisma.user.findUniqueOrThrow({
+    where: {
+      id: userId,
+    },
+    select: {
+      email: true,
+    },
+  });
+
+  return await prisma.$transaction(async (transactionClient) => {
+    const updateUser = await transactionClient.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        role: status.role as UserRole,
+      },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        needPasswordChange: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    const isExistInAdmin = await prisma.admin.findFirst({
+      where: {
+        email: result.email,
+      },
+      select: {
+        username: true,
+        email: true,
+      },
+    });
+
+    if (!isExistInAdmin && status.role === "ADMIN") {
+      await transactionClient.admin.create({
+        data: {
+          email: result.email,
+          username: `admin_${userId}`,
+          password: "defaultPassword",
+        },
+      });
+    } else if (isExistInAdmin && status.role === "USER") {
+      await transactionClient.admin.delete({
+        where: {
+          email: result.email,
+        },
+      });
+    }
+
+    return updateUser;
+  });
+};
+
 export const UserServices = {
   createAdmin,
   createUser,
   getMyProfile,
   getAllUsers,
+  // editProfileIntoDB,
+  changeUserRole,
 };

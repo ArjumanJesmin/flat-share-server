@@ -19,4 +19,10 @@ router.post(
   AuthController.changePassword
 );
 
+router.post(
+  "/change-role",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  AuthController.changePassword
+);
+
 export const AuthRoutes = router;

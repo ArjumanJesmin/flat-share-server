@@ -5,7 +5,7 @@ import sendResponse from "../../../shared/sendResponse";
 import { UserServices } from "./user.services";
 import { IAuthUser } from "../../../interfaces/common";
 
-const createAdmin = catchAsync(async (req: Request, res: Response) => {
+const createAdmin = catchAsync(async (req, res) => {
   const result = await UserServices.createAdmin(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -15,7 +15,7 @@ const createAdmin = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const createUser = catchAsync(async (req: Request, res: Response) => {
+const createUser = catchAsync(async (req, res) => {
   const result = await UserServices.createUser(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -50,9 +50,37 @@ const getMyProfile = catchAsync(
   }
 );
 
+// const editProfile = catchAsync(async (req, res) => {
+//   const { email } = req.user;
+
+//   const result = await UserServices.editProfileIntoDB(email, req.body);
+
+//   sendResponse(res, {
+//     statusCode: httpStatus.OK,
+//     success: true,
+//     message: "Users profile role changed!",
+//     data: result,
+//   });
+// });
+
+const changeUserRole = catchAsync(async (req, res) => {
+  const { userId } = req.params;
+
+  const result = await UserServices.changeUserRole(userId, req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Users profile role changed!",
+    data: result,
+  });
+});
+
 export const UserController = {
   createAdmin,
   createUser,
   getMyProfile,
   getAllUsers,
+  // editProfile,
+  changeUserRole,
 };

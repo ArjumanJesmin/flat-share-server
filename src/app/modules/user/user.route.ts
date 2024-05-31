@@ -11,17 +11,26 @@ router.post(
   UserController.createAdmin
 );
 
-router.post(
-  "/create-user",
-  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
-  UserController.createUser
-);
+router.post("/create-user", UserController.createUser);
 
 router.get(
   "/me",
   auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
   UserController.getMyProfile
 );
+
 router.get("/users", UserController.getAllUsers);
+
+// router.patch(
+//   "/editProfile",
+//   auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.USER),
+//   UserController.editProfile
+// );
+
+router.patch(
+  "/:userId/role",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  UserController.changeUserRole
+);
 
 export const userRoutes = router;

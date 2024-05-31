@@ -1,31 +1,10 @@
 import prisma from "../../../shared/prisma";
 
 import { IAuthUser } from "../../../interfaces/common";
-import { Flat } from "@prisma/client";
-
-export type IUploadFile = {
-  fieldname: string;
-  originalname: string;
-  encoding: string;
-  mimetype: string;
-  destination: string;
-  filename: string;
-  path: string;
-  size: number;
-};
-
-interface FlatPhoto {
-  imageUrl: string;
-}
-
-interface FlatData {
-  location: string;
-  description: string;
-  rentAmount: number;
-  bedrooms: number;
-  flatPhotos: FlatPhoto[];
-  amenities: string;
-}
+import { Flat, Prisma, UserRole } from "@prisma/client";
+import { paginationHelper } from "../../../helpers/paginationHelper";
+import { IPaginationOptions } from "../../../interfaces/pagination";
+import { FlatData } from "./flat.interface";
 
 declare module "express" {
   export interface Request {
@@ -78,9 +57,83 @@ const createFlatFromDB = async (req: Request) => {
   }
 };
 
-const getAllFlatFromDB = async () => {
-  const result = prisma.flat.findMany();
-  return result;
+const getAllFlatFromDB = async (
+  user: IAuthUser,
+  filters: any,
+  options: IPaginationOptions & {
+    location?: string;
+    priceMin?: number;
+    priceMax?: number;
+    bedrooms?: number;
+  }
+) => {
+  const { limit, page, skip } = paginationHelper.calculatePagination(options);
+  const { location, priceMin, priceMax, bedrooms } = filters;
+
+  const andConditions: Prisma.FlatWhereInput[] = [];
+
+  // Filter by location
+  if (location) {
+    andConditions.push({
+      location: {
+        contains: location,
+        mode: "insensitive",
+      },
+    });
+  }
+
+  // Filter by price range
+  if (priceMin !== undefined || priceMax !== undefined) {
+    andConditions.push({
+      rentAmount: {
+        gte: priceMin,
+        lte: priceMax,
+      },
+    });
+  }
+
+  // Filter by number of bedrooms
+  if (bedrooms) {
+    andConditions.push({
+      bedrooms: Number(bedrooms),
+    });
+  }
+
+  const whereConditions: Prisma.FlatWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  const result = await prisma.flat.findMany({
+    where: whereConditions,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : { createdAt: "desc" },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          needPasswordChange: true,
+        },
+      },
+    },
+  });
+
+  const total = await prisma.flat.count({
+    where: whereConditions,
+  });
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+    },
+    data: result,
+  };
 };
 
 const getSingleFlatFromDB = async (id: string) => {
@@ -137,13 +190,21 @@ const updateMyFlatDataIntoDB = async (
 };
 
 const deleteFlatFromDB = async (id: string) => {
-  const deleteFlat = await prisma.flat.delete({
+  await prisma.flatPhoto.deleteMany({
+    where: {
+      flatId: id,
+    },
+  });
+
+  // Then delete the Flat record
+  await prisma.flat.delete({
     where: {
       id,
     },
   });
 
-  return deleteFlat;
+  console.log("Flat deleted successfully");
+  return { success: true, message: "Flat deleted successfully" };
 };
 export const FlatService = {
   createFlatFromDB,
