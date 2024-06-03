@@ -1,15 +1,15 @@
 import prisma from "../../../shared/prisma";
-import { IAuthUser } from "../../../interfaces/common";
 import { FlatShareRequest, RequestStatus } from "@prisma/client";
 
 const createFlatRequestIntoDB = async (
   payload: FlatShareRequest,
-  user: IAuthUser
+  userId: string
 ) => {
-  console.log(user);
+  console.log("Creating flat share request for user:", userId);
+
   const userInfo = await prisma.user.findUniqueOrThrow({
     where: {
-      id: user?.userId,
+      id: userId,
     },
   });
 
@@ -20,10 +20,11 @@ const createFlatRequestIntoDB = async (
     additionalInfo,
     status: RequestStatus.PENDING,
     flatId,
-    userId: userInfo?.id,
+    userId: userInfo.id,
     createdAt: new Date(),
   };
-  console.log(flatData);
+
+  console.log("Flat data to be inserted:", flatData);
 
   const result = await prisma.flatShareRequest.create({
     data: flatData,
@@ -32,6 +33,7 @@ const createFlatRequestIntoDB = async (
       flat: true,
     },
   });
+
   return result;
 };
 

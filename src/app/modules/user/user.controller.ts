@@ -50,18 +50,18 @@ const getMyProfile = catchAsync(
   }
 );
 
-// const editProfile = catchAsync(async (req, res) => {
-//   const { email } = req.user;
+const editProfile = catchAsync(async (req, res) => {
+  const { email } = req.user || { email: null };
 
-//   const result = await UserServices.editProfileIntoDB(email, req.body);
+  const result = await UserServices.editProfileIntoDB(email, req.body);
 
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "Users profile role changed!",
-//     data: result,
-//   });
-// });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Users profile role changed!",
+    data: result,
+  });
+});
 
 const changeUserRole = catchAsync(async (req, res) => {
   const { userId } = req.params;
@@ -75,12 +75,24 @@ const changeUserRole = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const changeProfileStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await UserServices.changeProfileStatus(id, req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Users profile status changed!",
+    data: result,
+  });
+});
 
 export const UserController = {
   createAdmin,
   createUser,
   getMyProfile,
   getAllUsers,
-  // editProfile,
+  editProfile,
   changeUserRole,
+  changeProfileStatus,
 };

@@ -11,6 +11,7 @@ router.post(
   auth(UserRole.ADMIN, UserRole.USER, UserRole.SUPER_ADMIN),
   FlatShareRequestController.createFlatRequest
 );
+
 router.get(
   "/",
   auth(UserRole.ADMIN, UserRole.USER, UserRole.SUPER_ADMIN),

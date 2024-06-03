@@ -13,10 +13,8 @@ declare module "express" {
   }
 }
 
-const createFlatFromDB = async (req: Request) => {
+const createFlatFromDB = async (payload: any, userId: string) => {
   try {
-    const { userId } = req.user;
-
     // Extract flatPhotos from req.body
     const {
       location,
@@ -25,7 +23,7 @@ const createFlatFromDB = async (req: Request) => {
       bedrooms,
       flatPhotos,
       amenities,
-    } = req.body;
+    } = payload;
 
     const photos = Array.isArray(flatPhotos) ? flatPhotos : [];
 
@@ -169,20 +167,20 @@ const updateFlatDataIntoDB = async (id: string, payload: Flat) => {
 
 const updateMyFlatDataIntoDB = async (
   id: string,
-  user: IAuthUser,
-  payload: TFlat
+  userId: string,
+  payload: any
 ) => {
   await prisma.flat.findFirstOrThrow({
     where: {
       id,
-      userId: user?.id,
+      userId,
     },
   });
 
   const result = await prisma.flat.update({
     where: {
       id,
-      userId: user?.id,
+      userId,
     },
     data: payload,
   });

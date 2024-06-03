@@ -8,7 +8,8 @@ import { flatFilterableFields } from "./constant";
 import pick from "../../../shared/pick";
 
 const createFlatFromDB = catchAsync(async (req, res) => {
-  const result = await FlatService.createFlatFromDB(req);
+  const { userId } = req.user || { userId: null };
+  const result = await FlatService.createFlatFromDB(req.body, userId);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -18,7 +19,7 @@ const createFlatFromDB = catchAsync(async (req, res) => {
 });
 
 const getAllFlatFromDB = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user as any;
+  const user = req.user as IAuthUser;
   const filters = pick(req.query, flatFilterableFields);
   const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
   const result = await FlatService.getAllFlatFromDB(user, filters, options);
@@ -54,21 +55,19 @@ const updateFlat = catchAsync(async (req, res) => {
   });
 });
 
-const updateMyFlat = catchAsync(
-  async (req: Request & { user?: IAuthUser }, res: Response) => {
-    const user = req.user;
-    const { id } = req.params;
+const updateMyFlat = catchAsync(async (req, res: Response) => {
+  const { userId } = req.user || { userId: null };
+  const { id } = req.params;
 
-    const result = await FlatService.updateMyFlatDataIntoDB(id, user, req.body);
+  const result = await FlatService.updateMyFlatDataIntoDB(id, userId, req.body);
 
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "FLat data updated!",
-      data: result,
-    });
-  }
-);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "FLat data updated!",
+    data: result,
+  });
+});
 
 const deleteFlat = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;

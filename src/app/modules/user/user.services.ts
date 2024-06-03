@@ -129,10 +129,12 @@ const getMyProfile = async (user: IAuthUser) => {
 };
 const getAllUsers = async () => {
   try {
-    const users = await prisma.flatUser.findMany({
+    const users = await prisma.user.findMany({
       select: {
         id: true,
         email: true,
+        role: true,
+        needPasswordChange: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -144,72 +146,73 @@ const getAllUsers = async () => {
   }
 };
 
-// const editProfileIntoDB = async (
-//   email: string,
-//   payload: { username?: string; email?: string }
-// ) => {
-//   const isExistInUser = await prisma.user.findUniqueOrThrow({
-//     where: {
-//       email,
-//     },
-//     select: {
-//       email: true,
-//     },
-//   });
+const editProfileIntoDB = async (
+  email: string,
+  payload: { username?: string; email?: string }
+) => {
+  console.log(email);
+  const isExistInUser = await prisma.flatUser.findUniqueOrThrow({
+    where: {
+      email,
+    },
+    select: {
+      email: true,
+    },
+  });
 
-//   const isExistInAdmin = await prisma.admin.findUnique({
-//     where: {
-//       email,
-//     },
-//   });
+  const isExistInAdmin = await prisma.admin.findUnique({
+    where: {
+      email,
+    },
+  });
 
-//   if (isExistInUser && !isExistInAdmin) {
-//     const updateUser = await prisma.user.update({
-//       where: {
-//         email,
-//       },
-//       data: payload,
-//       select: {
-//         id: true,
-//         email: true,
-//         role: true,
-//         needPasswordChange: true,
-//         createdAt: true,
-//         updatedAt: true,
-//       },
-//     });
-//     return updateUser;
-//   }
-//   if (!!isExistInAdmin && !!isExistInUser) {
-//     return await prisma.$transaction(async (transactionClient) => {
-//       const updateUser = await transactionClient.user.update({
-//         where: {
-//           email,
-//         },
-//         data: payload,
-//         select: {
-//           id: true,
-//           email: true,
-//           role: true,
-//           needPasswordChange: true,
-//           createdAt: true,
-//           updatedAt: true,
-//         },
-//       });
+  if (isExistInUser && !isExistInAdmin) {
+    const updateUser = await prisma.user.update({
+      where: {
+        email,
+      },
+      data: payload,
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        needPasswordChange: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    return updateUser;
+  }
+  if (!!isExistInAdmin && !!isExistInUser) {
+    return await prisma.$transaction(async (transactionClient) => {
+      const updateUser = await transactionClient.user.update({
+        where: {
+          email,
+        },
+        data: payload,
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          needPasswordChange: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
 
-//       await transactionClient.admin.update({
-//         where: {
-//           email,
-//         },
-//         data: payload,
-//       });
+      await transactionClient.admin.update({
+        where: {
+          email,
+        },
+        data: payload,
+      });
 
-//       return updateUser;
-//     });
-//   }
-// };
+      return updateUser;
+    });
+  }
+};
 
-const changeUserRole = async (userId: any, status: { role: string }) => {
+const changeUserRole = async (userId: any, status: { role: UserRole }) => {
   const result = await prisma.user.findUniqueOrThrow({
     where: {
       id: userId,
@@ -267,11 +270,29 @@ const changeUserRole = async (userId: any, status: { role: string }) => {
   });
 };
 
+const changeProfileStatus = async (id: any, status: UserRole) => {
+  await prisma.user.findUniqueOrThrow({
+    where: {
+      id,
+    },
+  });
+
+  const updateUserStatus = await prisma.user.update({
+    where: {
+      id,
+    },
+    data: status,
+  });
+
+  return updateUserStatus;
+};
+
 export const UserServices = {
   createAdmin,
   createUser,
   getMyProfile,
   getAllUsers,
-  // editProfileIntoDB,
+  editProfileIntoDB,
   changeUserRole,
+  changeProfileStatus,
 };

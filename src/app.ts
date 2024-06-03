@@ -1,7 +1,5 @@
 import express, { Application, NextFunction, Request, Response } from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
-
 import httpStatus from "http-status";
 import cookieParser from "cookie-parser";
 import router from "./app/routes";
@@ -19,11 +17,10 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(bodyParser.json());
 
 app.get("/", (req: Request, res: Response) => {
   res.send({
-    message: " Charity Sever..",
+    message: " Flat share Sever..",
   });
 });
 

@@ -14,11 +14,16 @@ enum UserRole {
   USER
 }
 
-// Define the RequestStatus enum to represent the status of flat share requests
 enum RequestStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  DELETED
 }
 
 // The User model represents regular users
@@ -27,6 +32,7 @@ model User {
   email              String             @unique
   password           String
   role               UserRole
+  status             UserStatus         @default(ACTIVE)
   needPasswordChange Boolean            @default(true)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt

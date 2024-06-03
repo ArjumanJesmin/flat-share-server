@@ -5,39 +5,34 @@ import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
 import { FlatShareRequestServices } from "./service";
 
-const createFlatRequest = catchAsync(
-  async (req: Request & { user?: IAuthUser }, res: Response) => {
-    const user = req.user;
-    console.log(user);
+const createFlatRequest = catchAsync(async (req, res) => {
+  const { userId } = req.user || { userId: null };
 
-    const result = await FlatShareRequestServices.createFlatRequestIntoDB(
-      req.body,
-      user
-    );
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Flat Share Request created successfully",
-      data: result,
-    });
-  }
-);
+  const result = await FlatShareRequestServices.createFlatRequestIntoDB(
+    req.body,
+    userId
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Flat Share Request created successfully",
+    data: result,
+  });
+});
 
-const getAllFlatRequestData = catchAsync(
-  async (req: Request, res: Response) => {
-    const { userId } = req.user;
-    const result = await FlatShareRequestServices.getAllFlatRequestDataFromDB(
-      userId
-    );
+const getAllFlatRequestData = catchAsync(async (req, res) => {
+  const { userId } = req.user || { userId: null };
+  const result = await FlatShareRequestServices.getAllFlatRequestDataFromDB(
+    userId
+  );
 
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Flat Share Request retrieved successfully",
-      data: result,
-    });
-  }
-);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Flat Share Request retrieved successfully",
+    data: result,
+  });
+});
 const getSingleFlatRequestData = catchAsync(
   async (req: Request, res: Response) => {
     const { flatId } = req.params;

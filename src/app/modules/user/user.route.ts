@@ -21,16 +21,16 @@ router.get(
 
 router.get("/users", UserController.getAllUsers);
 
-// router.patch(
-//   "/editProfile",
-//   auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.USER),
-//   UserController.editProfile
-// );
+router.patch(
+  "/editProfile",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.USER),
+  UserController.editProfile
+);
 
 router.patch(
-  "/:userId/role",
+  "/:id/status",
   auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
-  UserController.changeUserRole
+  UserController.changeProfileStatus
 );
 
 export const userRoutes = router;
