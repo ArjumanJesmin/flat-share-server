@@ -15,6 +15,7 @@ user_controller_1.UserController.createAdmin);
 router.post("/create-user", user_controller_1.UserController.createUser);
 router.get("/me", (0, auth_1.default)(client_1.UserRole.SUPER_ADMIN, client_1.UserRole.ADMIN), user_controller_1.UserController.getMyProfile);
 router.get("/users", user_controller_1.UserController.getAllUsers);
+router.patch("/:userId/role", (0, auth_1.default)(client_1.UserRole.SUPER_ADMIN, client_1.UserRole.ADMIN), user_controller_1.UserController.changeUserRole);
 router.patch("/editProfile", (0, auth_1.default)(client_1.UserRole.SUPER_ADMIN, client_1.UserRole.ADMIN, client_1.UserRole.USER), user_controller_1.UserController.editProfile);
 router.patch("/:id/status", (0, auth_1.default)(client_1.UserRole.SUPER_ADMIN, client_1.UserRole.ADMIN), user_controller_1.UserController.changeProfileStatus);
 exports.userRoutes = router;

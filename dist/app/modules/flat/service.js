@@ -83,14 +83,8 @@ const getAllFlatFromDB = (user, filters, options) => __awaiter(void 0, void 0, v
             ? { [options.sortBy]: options.sortOrder }
             : { createdAt: "desc" },
         include: {
-            user: {
-                select: {
-                    id: true,
-                    email: true,
-                    role: true,
-                    needPasswordChange: true,
-                },
-            },
+            user: true,
+            flatPhotos: true,
         },
     });
     const total = yield prisma_1.default.flat.count({

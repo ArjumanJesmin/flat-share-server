@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from "express";
+import express from "express";
 import { UserController } from "./user.controller";
 import auth from "../../middlewares/auth";
 import { UserRole } from "@prisma/client";
@@ -20,6 +20,12 @@ router.get(
 );
 
 router.get("/users", UserController.getAllUsers);
+
+router.patch(
+  "/:userId/role",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  UserController.changeUserRole
+);
 
 router.patch(
   "/editProfile",

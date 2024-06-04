@@ -52,19 +52,7 @@ const getAllFlatRequestDataFromDB = (userId) => __awaiter(void 0, void 0, void 0
     });
     return result;
 });
-const getSingleFlatRequestDataFromDB = (flatId) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield prisma_1.default.flatShareRequest.findFirstOrThrow({
-        where: {
-            flatId,
-        },
-        include: {
-            flat: true,
-        },
-    });
-    return result;
-});
 exports.FlatShareRequestServices = {
     createFlatRequestIntoDB,
     getAllFlatRequestDataFromDB,
-    getSingleFlatRequestDataFromDB,
 };

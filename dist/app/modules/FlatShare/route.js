@@ -11,5 +11,4 @@ const auth_1 = __importDefault(require("../../middlewares/auth"));
 const router = express_1.default.Router();
 router.post("/create", (0, auth_1.default)(client_1.UserRole.ADMIN, client_1.UserRole.USER, client_1.UserRole.SUPER_ADMIN), controller_1.FlatShareRequestController.createFlatRequest);
 router.get("/", (0, auth_1.default)(client_1.UserRole.ADMIN, client_1.UserRole.USER, client_1.UserRole.SUPER_ADMIN), controller_1.FlatShareRequestController.getAllFlatRequestData);
-router.get("/getSingleFlatRequest/:id", (0, auth_1.default)(client_1.UserRole.ADMIN, client_1.UserRole.USER, client_1.UserRole.SUPER_ADMIN), controller_1.FlatShareRequestController.getSingleFlatRequestData);
 exports.FlatShareRoutes = router;

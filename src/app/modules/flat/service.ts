@@ -109,14 +109,8 @@ const getAllFlatFromDB = async (
         ? { [options.sortBy]: options.sortOrder }
         : { createdAt: "desc" },
     include: {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          role: true,
-          needPasswordChange: true,
-        },
-      },
+      user: true,
+      flatPhotos: true,
     },
   });
 

@@ -33,22 +33,8 @@ const getAllFlatRequestData = catchAsync(async (req, res) => {
     data: result,
   });
 });
-const getSingleFlatRequestData = catchAsync(
-  async (req: Request, res: Response) => {
-    const { flatId } = req.params;
-    const result =
-      await FlatShareRequestServices.getSingleFlatRequestDataFromDB(flatId);
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Flat Share Request retrieved successfully",
-      data: result,
-    });
-  }
-);
 
 export const FlatShareRequestController = {
   createFlatRequest,
   getAllFlatRequestData,
-  getSingleFlatRequestData,
 };

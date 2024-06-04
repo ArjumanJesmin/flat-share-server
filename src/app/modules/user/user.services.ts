@@ -212,7 +212,7 @@ const editProfileIntoDB = async (
   }
 };
 
-const changeUserRole = async (userId: any, status: { role: UserRole }) => {
+const changeUserRole = async (userId: string, status: { role: UserRole }) => {
   const result = await prisma.user.findUniqueOrThrow({
     where: {
       id: userId,
