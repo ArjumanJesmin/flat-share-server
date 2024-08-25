@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Define the UserRole enum to represent different roles for users
 enum UserRole {
   SUPER_ADMIN
   ADMIN
@@ -97,6 +96,8 @@ model FlatPhoto {
   imageUrl String
   flatId   String
   flat     Flat   @relation(fields: [flatId], references: [id])
+
+  @@map("flatPhoto")
 }
 
 model FlatShareRequest {

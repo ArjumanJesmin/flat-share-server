@@ -1,19 +1,19 @@
 import prisma from "../../../shared/prisma";
 
-import { IAuthUser } from "../../../interfaces/common";
-import { Flat, Prisma, UserRole } from "@prisma/client";
+import { Flat, Prisma } from "@prisma/client";
 import { paginationHelper } from "../../../helpers/paginationHelper";
+import { IAuthUser } from "../../../interfaces/common";
 import { IPaginationOptions } from "../../../interfaces/pagination";
-import { FlatData } from "./flat.interface";
+import { FlatPayload } from "./flat.interface";
 
-declare module "express" {
-  export interface Request {
-    user: IAuthUser;
-    body: FlatData | null;
-  }
-}
+// declare module "express" {
+//   export interface Request {
+//     user: IAuthUser;
+//     body: FlatData | null;
+//   }
+// }
 
-const createFlatFromDB = async (payload: any, userId: string) => {
+const createFlatFromDB = async (payload: FlatPayload, userId: string) => {
   try {
     // Extract flatPhotos from req.body
     const {
@@ -56,7 +56,7 @@ const createFlatFromDB = async (payload: any, userId: string) => {
 };
 
 const getAllFlatFromDB = async (
-  user: IAuthUser,
+  // user: IAuthUser,
   filters: any,
   options: IPaginationOptions & {
     location?: string;
@@ -150,6 +150,13 @@ const getSingleFlatFromDB = async (id: string) => {
 };
 
 const updateFlatDataIntoDB = async (id: string, payload: Flat) => {
+  const existingFlat = await prisma.flat.findUnique({
+    where: { id },
+  });
+
+  if (!existingFlat) {
+    throw new Error(`Flat with ID ${id} not found.`);
+  }
   const result = await prisma.flat.update({
     where: {
       id,
@@ -181,23 +188,24 @@ const updateMyFlatDataIntoDB = async (
   return result;
 };
 
-const deleteFlatFromDB = async (id: string) => {
-  await prisma.flatPhoto.deleteMany({
-    where: {
-      flatId: id,
-    },
-  });
+const deleteFlatFromDB = async (id: string): Promise<Flat> => {
+  return await prisma.$transaction(async (transactionClient) => {
+    const deleteFlat = await transactionClient.flat.delete({
+      where: {
+        id,
+      },
+    });
 
-  // Then delete the Flat record
-  await prisma.flat.delete({
-    where: {
-      id,
-    },
-  });
+    await transactionClient.flatPhoto.deleteMany({
+      where: {
+        flatId: id,
+      },
+    });
 
-  console.log("Flat deleted successfully");
-  return { success: true, message: "Flat deleted successfully" };
+    return deleteFlat;
+  });
 };
+
 export const FlatService = {
   createFlatFromDB,
   getAllFlatFromDB,

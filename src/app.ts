@@ -8,7 +8,7 @@ import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 const app: Application = express();
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://my-flat-client.vercel.app"],
+    origin: ["http://localhost:3000", "https://my-shareing-flat.vercel.app"],
     credentials: true,
   })
 );

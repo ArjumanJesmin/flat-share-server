@@ -3,7 +3,6 @@ import httpStatus from "http-status";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { Request, Response } from "express";
-import { IAuthUser } from "../../../interfaces/common";
 import { flatFilterableFields } from "./constant";
 import pick from "../../../shared/pick";
 
@@ -19,10 +18,9 @@ const createFlatFromDB = catchAsync(async (req, res) => {
 });
 
 const getAllFlatFromDB = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user as IAuthUser;
   const filters = pick(req.query, flatFilterableFields);
   const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
-  const result = await FlatService.getAllFlatFromDB(user, filters, options);
+  const result = await FlatService.getAllFlatFromDB(filters, options);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

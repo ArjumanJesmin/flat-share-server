@@ -15,6 +15,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FlatService = void 0;
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
+// declare module "express" {
+//   export interface Request {
+//     user: IAuthUser;
+//     body: FlatData | null;
+//   }
+// }
 const createFlatFromDB = (payload, userId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Extract flatPhotos from req.body
@@ -120,6 +126,12 @@ const getSingleFlatFromDB = (id) => __awaiter(void 0, void 0, void 0, function* 
     return result;
 });
 const updateFlatDataIntoDB = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const existingFlat = yield prisma_1.default.flat.findUnique({
+        where: { id },
+    });
+    if (!existingFlat) {
+        throw new Error(`Flat with ID ${id} not found.`);
+    }
     const result = yield prisma_1.default.flat.update({
         where: {
             id,
@@ -145,19 +157,19 @@ const updateMyFlatDataIntoDB = (id, userId, payload) => __awaiter(void 0, void 0
     return result;
 });
 const deleteFlatFromDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    yield prisma_1.default.flatPhoto.deleteMany({
-        where: {
-            flatId: id,
-        },
-    });
-    // Then delete the Flat record
-    yield prisma_1.default.flat.delete({
-        where: {
-            id,
-        },
-    });
-    console.log("Flat deleted successfully");
-    return { success: true, message: "Flat deleted successfully" };
+    return yield prisma_1.default.$transaction((transactionClient) => __awaiter(void 0, void 0, void 0, function* () {
+        const deleteFlat = yield transactionClient.flat.delete({
+            where: {
+                id,
+            },
+        });
+        yield transactionClient.flatPhoto.deleteMany({
+            where: {
+                flatId: id,
+            },
+        });
+        return deleteFlat;
+    }));
 });
 exports.FlatService = {
     createFlatFromDB,

@@ -22,11 +22,11 @@ export interface FlatPhoto {
   imageUrl: string;
 }
 
-export interface FlatData {
+export interface FlatPayload {
   location: string;
   description: string;
   rentAmount: number;
   bedrooms: number;
-  flatPhotos: FlatPhoto[];
+  flatPhotos?: { imageUrl: string }[];
   amenities: string;
 }

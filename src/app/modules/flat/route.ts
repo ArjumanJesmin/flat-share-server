@@ -2,6 +2,8 @@ import express from "express";
 import { FlatController } from "./controller";
 import auth from "../../middlewares/auth";
 import { UserRole } from "@prisma/client";
+import validateRequest from "../../middlewares/validateRequest";
+import { flatSchema } from "./validation";
 
 const router = express.Router();
 
@@ -11,11 +13,7 @@ router.post(
   FlatController.createFlatFromDB
 );
 
-router.get(
-  "/",
-  auth(UserRole.ADMIN, UserRole.USER, UserRole.SUPER_ADMIN),
-  FlatController.getAllFlatFromDB
-);
+router.get("/", FlatController.getAllFlatFromDB);
 router.get(
   "/getSingleFlat/:id",
   auth(UserRole.ADMIN, UserRole.USER, UserRole.SUPER_ADMIN),
@@ -24,6 +22,7 @@ router.get(
 
 router.patch(
   "/updateFLat/:id",
+  validateRequest(flatSchema),
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.USER),
   FlatController.updateFlat
 );

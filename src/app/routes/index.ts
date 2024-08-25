@@ -7,7 +7,6 @@ import { FlatShareRoutes } from "../modules/FlatShare/route";
 const router = express.Router();
 
 const moduleRoutes = [
-  // ... routes
   {
     path: "/auth",
     route: AuthRoutes,

@@ -75,6 +75,7 @@ const changeUserRole = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
 const changeProfileStatus = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await UserServices.changeProfileStatus(id, req.body);

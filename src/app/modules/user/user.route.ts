@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post(
   "/create-admin",
-  // auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
   UserController.createAdmin
 );
 
